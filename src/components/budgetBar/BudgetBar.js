@@ -1,62 +1,101 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './BudgetBar.css'
 
-const BudgetBar = ({ income, fixedExpenses, variableExpenses }) => {
-  const [savings, setSavings] = useState(income * 0.1);
-  const [investment, setInvestment] = useState(income * 0.2);
-  const [isDragging, setIsDragging] = useState(null);
+const BudgetBar = ({ income, expenses }) => {
+  const budgetBlocksRef = useRef({});
+  const initialPageX = useRef(null);
+  const [budgets, setBudgets] = useState({
+    savings: income * 0.1,
+    investment: income * 0.2,
+    freeAmount: income - expenses - income * 0.3
+  });
 
-  const calculateFreeAmount = () => income - (fixedExpenses + variableExpenses + savings + investment);
+  const setInitialPageX = e => {
+    initialPageX.current = e.pageX;
+  }
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  },[])
+    for (const key in budgetBlocksRef.current) {
+      const budgetBlock = budgetBlocksRef.current[key].budgetBlock
+      const resizer = budgetBlocksRef.current[key].resizer
+      
+      resizer.addEventListener('mousedown', e => {
+        e.preventDefault();
+        window.addEventListener('mousemove', resize);
+        window.addEventListener('mouseup', stopResize);
+      })
+      
+      const resize = e => {
+        const budgetLabel = budgetBlock.id.toLowerCase()
+        let amountChange = e.movementX
+        
+        if (budgets.freeAmount <= 0) {
+          return;
+        };
 
-  const handleMouseDown = section => {
-    setIsDragging(section);
-  };
+        setBudgets(prevBudgets => {
+          let updatedFreeAmount = prevBudgets.freeAmount - amountChange;
+          if (updatedFreeAmount <= 0) {
+            amountChange = prevBudgets.freeAmount;
+            updatedFreeAmount = 0;
+          };
+        
+          let newBudgets = { ...prevBudgets };
+          newBudgets[budgetLabel] += amountChange;
+          newBudgets.freeAmount = updatedFreeAmount;
+        
+          return newBudgets;
+        });
+      }
 
-  const handleMouseMove = e => {
-    if (isDragging === 'savings') {
-      console.log('movementX:', e.movementX)
-      console.log('savings:', savings)
-      setSavings(prev => prev + e.movementX);
-      console.log('savings:', savings)
-    } else if (isDragging === 'investment') {
-      setInvestment(prev => prev + e.movementX);
+      const stopResize = () => {
+        window.removeEventListener('mousemove', resize)
+        window.removeEventListener('mouseup', stopResize);
+      }
     }
-  };
+  }, [budgets.freeAmount]);
 
-  const handleMouseUp = () => {
-    setIsDragging(null)
-    console.log('remove event listeners')
-  };
-
-  const renderBar = (color, amount, label) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: `${(amount / income) * 100}%`, background: color }}>
-      <span>{label}</span>
-      <span>{((amount / income) * 100).toFixed(2)}%</span>
-      <span>{amount}</span>
+  const renderBlock = (label, color, amount) => (
+    <div
+      id={label.toLowerCase()}
+      className='budgetBlock'
+      ref={budgetBlock => budgetBlocksRef.current[label.toLowerCase()].budgetBlock = budgetBlock}
+      style={{ width: `${(amount / income) * 100}%`, background: color }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
+        <span>{label}</span>
+        <span>{((amount / income) * 100).toFixed(2)}%</span>
+        <span>{amount}</span>
+      </div>
+      <div
+        className='resizer'
+        ref={budgetBlock => {
+          budgetBlocksRef.current[label.toLowerCase()] = {};
+          budgetBlocksRef.current[label.toLowerCase()].resizer = budgetBlock;
+        }}
+        onMouseDown={setInitialPageX}
+      >
+      </div>
     </div>
   );
 
   return (
-    <div>
-      <div style={{ display: 'flex', height: '50px', width: '50%', border: '1px solid black' }}>
-        {renderBar('red', fixedExpenses, "Fixed Expenses")}
-        {renderBar('yellow', variableExpenses, "Variable Expenses")}
-        {renderBar('green', savings, "Savings")}
-        <div
-          style={{ cursor: 'ew-resize', background: '#ccc', width: '5px' }}
-          onMouseDown={() => handleMouseDown('savings')}
-        ></div>
-        {renderBar('blue', investment, "Investment")}
-        <div
-          style={{ cursor: 'ew-resize', background: '#ccc', width: '5px' }}
-          onMouseDown={() => handleMouseDown('investment')}
-        ></div>
-        {renderBar('purple', calculateFreeAmount(), "Free Amount")}
+    <div id='budgetBar'>
+      <div id='expenses' className='budgetBlock' style={{ width: `${(expenses / income) * 100}%`, background: 'red' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
+          <span>Expenses</span>
+          <span>{((expenses / income) * 100).toFixed(2)}%</span>
+          <span>{expenses}</span>
+        </div>
+      </div>
+      {renderBlock('Savings', 'blue', budgets.savings)}
+      {renderBlock('Investment', 'green', budgets.investment)}
+      <div id='freeAmount' className='budgetBlock' style={{ width: `${(budgets.freeAmount / income) * 100}%`, background: 'purple' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
+          <span>Free Amount</span>
+          <span>{((budgets.freeAmount / income) * 100).toFixed(2)}%</span>
+          <span>{budgets.freeAmount}</span>
+        </div>
       </div>
     </div>
   );
