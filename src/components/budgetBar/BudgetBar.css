@@ -5,19 +5,33 @@
     border: 1px solid black
 }
 
+.budgetContainer {
+    display: flex;
+    border: 0;
+    padding: 0;
+}
+
 .budgetBlock {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    border: 0
+    border: 0;
+    flex-grow: 1;
+}
+
+.budgetLabel {
+    display: flex;
+    flex-direction: column;
+    flex: 1
 }
 
 .resizer {
     position: relative;
     right: 0;
+    top: 0;
     cursor: ew-resize;
     background: black;
     width: 5px;
-    z-index: 2;
+    z-index: 99;
     height: 100%
 }

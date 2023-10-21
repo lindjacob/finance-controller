@@ -2,78 +2,103 @@ import React, { useEffect, useState, useRef } from 'react';
 import './BudgetBar.css'
 
 const BudgetBar = ({ income, expenses }) => {
+  const budgetBarWidth = 800;
+  const totalRatioChangeRef = useRef(0)
   const budgetBlocksRef = useRef({});
-  const initialPageX = useRef(null);
+  const budgetBlockPrevPageXRef = useRef(null);
   const [budgets, setBudgets] = useState({
-    savings: income * 0.1,
-    investment: income * 0.2,
-    freeAmount: income - expenses - income * 0.3
+    savings: 0.1,
+    investment: 0.2,
+    freeAmount: 1 - expenses / income - 0.3
   });
 
-  const setInitialPageX = e => {
-    initialPageX.current = e.pageX;
+  const calculateWidth = ratio => {
+    const numberOfResizers = Object.keys(budgets).length - 1;
+    return (budgetBarWidth - 5 * numberOfResizers) * ratio + 'px';
+  };
+
+  const updateFreeAmount = () => {
+    setBudgets(prevBudgets => {
+      const newBudgets = { ...prevBudgets };
+      let occupiedAmount = 0;
+      for (const budget in budgets) {
+        if (budget === 'freeAmount') {
+          continue;
+        }
+        occupiedAmount += income * budgets[budget]
+      }
+      newBudgets.freeAmount = (income - occupiedAmount) / income
+      return newBudgets
+    })
+  }
+
+  const resize = (e, budgetLabel) => {
+    setBudgets(prevBudgets => {
+      console.log('ratioChange:', e.pageX - budgetBlockPrevPageXRef.current)
+      let ratioChange = (e.pageX - budgetBlockPrevPageXRef.current) / budgetBarWidth;
+      budgetBlockPrevPageXRef.current = e.pageX
+      totalRatioChangeRef.current += ratioChange
+      
+      let updatedFreeAmount = prevBudgets.freeAmount - ratioChange;
+      let updatedBudgetAmount = prevBudgets[budgetLabel] + ratioChange;
+
+      if (ratioChange === 0) {
+        return prevBudgets;
+      } else if (ratioChange > 0 && updatedFreeAmount <= 0) {
+        ratioChange = prevBudgets.freeAmount;
+        updatedFreeAmount = 0;
+        updatedBudgetAmount += ratioChange;
+      } else if (ratioChange < 0 && updatedBudgetAmount <= 0) {
+        ratioChange = prevBudgets[budgetLabel];
+        updatedFreeAmount += ratioChange;
+        updatedBudgetAmount = 0;
+      }
+
+      let newBudgets = { ...prevBudgets };
+      newBudgets.freeAmount = updatedFreeAmount;
+      newBudgets[budgetLabel] = updatedBudgetAmount;
+
+      return newBudgets;
+    });
+  }
+
+  const controlBudgetBlock = (e, budgetLabel) => {
+    e.preventDefault();
+    budgetBlockPrevPageXRef.current = e.pageX;
+    const resizeFunction = (e) => resize(e, budgetLabel)
+    window.addEventListener('mousemove', resizeFunction);
+    window.addEventListener('mouseup', () => {
+      console.log('totalRatioChangeRef:', totalRatioChangeRef.current)
+      window.removeEventListener('mousemove', resizeFunction);
+      budgetBlockPrevPageXRef.current = null;
+    });
   }
 
   useEffect(() => {
-    for (const key in budgetBlocksRef.current) {
-      const budgetBlock = budgetBlocksRef.current[key].budgetBlock
-      const resizer = budgetBlocksRef.current[key].resizer
-      
-      resizer.addEventListener('mousedown', e => {
-        e.preventDefault();
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResize);
-      })
-      
-      const resize = e => {
-        const budgetLabel = budgetBlock.id.toLowerCase()
-        let amountChange = e.movementX
-        
-        if (budgets.freeAmount <= 0) {
-          return;
-        };
+    updateFreeAmount()
+  }, []);
 
-        setBudgets(prevBudgets => {
-          let updatedFreeAmount = prevBudgets.freeAmount - amountChange;
-          if (updatedFreeAmount <= 0) {
-            amountChange = prevBudgets.freeAmount;
-            updatedFreeAmount = 0;
-          };
-        
-          let newBudgets = { ...prevBudgets };
-          newBudgets[budgetLabel] += amountChange;
-          newBudgets.freeAmount = updatedFreeAmount;
-        
-          return newBudgets;
-        });
-      }
-
-      const stopResize = () => {
-        window.removeEventListener('mousemove', resize)
-        window.removeEventListener('mouseup', stopResize);
-      }
-    }
-  }, [budgets.freeAmount]);
-
-  const renderBlock = (label, color, amount) => (
-    <div
-      id={label.toLowerCase()}
-      className='budgetBlock'
-      ref={budgetBlock => budgetBlocksRef.current[label.toLowerCase()].budgetBlock = budgetBlock}
-      style={{ width: `${(amount / income) * 100}%`, background: color }}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
-        <span>{label}</span>
-        <span>{((amount / income) * 100).toFixed(2)}%</span>
-        <span>{amount}</span>
+  const renderBlock = (label, color, ratio) => (
+    <div className='budgetContainer'>
+      <div
+        id={label.toLowerCase()}
+        className='budgetBlock'
+        ref={budgetBlock => {
+          budgetBlocksRef.current[label.toLowerCase()] = {};
+          budgetBlocksRef.current[label.toLowerCase()].budgetBlock = budgetBlock;
+        }}
+        style={{ width: calculateWidth(ratio), background: color }}
+      >
+        <div className='budgetLabel' >
+          <span>{label}</span>
+          <span>{(ratio * 100).toFixed(1)}%</span>
+          <span>{Math.round(ratio * income)}</span>
+        </div>
       </div>
       <div
         className='resizer'
-        ref={budgetBlock => {
-          budgetBlocksRef.current[label.toLowerCase()] = {};
-          budgetBlocksRef.current[label.toLowerCase()].resizer = budgetBlock;
-        }}
-        onMouseDown={setInitialPageX}
+        ref={budgetBlock => { budgetBlocksRef.current[label.toLowerCase()].resizer = budgetBlock; }}
+        onMouseDown={(e) => controlBudgetBlock(e, label.toLowerCase())}
       >
       </div>
     </div>
@@ -81,20 +106,20 @@ const BudgetBar = ({ income, expenses }) => {
 
   return (
     <div id='budgetBar'>
-      <div id='expenses' className='budgetBlock' style={{ width: `${(expenses / income) * 100}%`, background: 'red' }}>
+      <div id='expenses' className='budgetBlock' style={{ width: calculateWidth(expenses / income), background: 'red' }}>
         <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
           <span>Expenses</span>
-          <span>{((expenses / income) * 100).toFixed(2)}%</span>
+          <span>{((expenses / income) * 100).toFixed(1)}%</span>
           <span>{expenses}</span>
         </div>
       </div>
       {renderBlock('Savings', 'blue', budgets.savings)}
       {renderBlock('Investment', 'green', budgets.investment)}
-      <div id='freeAmount' className='budgetBlock' style={{ width: `${(budgets.freeAmount / income) * 100}%`, background: 'purple' }}>
+      <div id='freeAmount' className='budgetBlock' style={{ width: calculateWidth(budgets.freeAmount), background: 'purple' }}>
         <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
           <span>Free Amount</span>
-          <span>{((budgets.freeAmount / income) * 100).toFixed(2)}%</span>
-          <span>{budgets.freeAmount}</span>
+          <span>{(budgets.freeAmount * 100).toFixed(1)}%</span>
+          <span>{Math.round(budgets.freeAmount * income)}</span>
         </div>
       </div>
     </div>
