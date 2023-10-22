@@ -3,7 +3,6 @@ import './BudgetBar.css'
 
 const BudgetBar = ({ income, expenses }) => {
   const budgetBarWidth = 800;
-  const totalRatioChangeRef = useRef(0)
   const budgetBlocksRef = useRef({});
   const budgetBlockPrevPageXRef = useRef(null);
   const [budgets, setBudgets] = useState({
@@ -25,50 +24,46 @@ const BudgetBar = ({ income, expenses }) => {
         if (budget === 'freeAmount') {
           continue;
         }
-        occupiedAmount += income * budgets[budget]
+        occupiedAmount += prevBudgets[budget]
       }
-      newBudgets.freeAmount = (income - occupiedAmount) / income
+      newBudgets.freeAmount = 1 - occupiedAmount - (expenses / income)
       return newBudgets
     })
   }
 
   const resize = (e, budgetLabel) => {
+    let ratioChange = (e.pageX - budgetBlockPrevPageXRef.current) / budgetBarWidth;
+    budgetBlockPrevPageXRef.current = e.pageX
+
     setBudgets(prevBudgets => {
-      console.log('ratioChange:', e.pageX - budgetBlockPrevPageXRef.current)
-      let ratioChange = (e.pageX - budgetBlockPrevPageXRef.current) / budgetBarWidth;
-      budgetBlockPrevPageXRef.current = e.pageX
-      totalRatioChangeRef.current += ratioChange
-      
       let updatedFreeAmount = prevBudgets.freeAmount - ratioChange;
       let updatedBudgetAmount = prevBudgets[budgetLabel] + ratioChange;
+      const insufficientAmount = (ratioChange > 0 && prevBudgets.freeAmount === 0) || (ratioChange < 0 && prevBudgets[budgetLabel] === 0)
 
-      if (ratioChange === 0) {
+      if (ratioChange === 0 || insufficientAmount) {
         return prevBudgets;
       } else if (ratioChange > 0 && updatedFreeAmount <= 0) {
         ratioChange = prevBudgets.freeAmount;
         updatedFreeAmount = 0;
-        updatedBudgetAmount += ratioChange;
+        updatedBudgetAmount = prevBudgets[budgetLabel] + ratioChange;
       } else if (ratioChange < 0 && updatedBudgetAmount <= 0) {
         ratioChange = prevBudgets[budgetLabel];
-        updatedFreeAmount += ratioChange;
+        updatedFreeAmount = prevBudgets.freeAmount + ratioChange;
         updatedBudgetAmount = 0;
       }
 
       let newBudgets = { ...prevBudgets };
       newBudgets.freeAmount = updatedFreeAmount;
       newBudgets[budgetLabel] = updatedBudgetAmount;
-
       return newBudgets;
     });
   }
 
   const controlBudgetBlock = (e, budgetLabel) => {
-    e.preventDefault();
     budgetBlockPrevPageXRef.current = e.pageX;
     const resizeFunction = (e) => resize(e, budgetLabel)
     window.addEventListener('mousemove', resizeFunction);
     window.addEventListener('mouseup', () => {
-      console.log('totalRatioChangeRef:', totalRatioChangeRef.current)
       window.removeEventListener('mousemove', resizeFunction);
       budgetBlockPrevPageXRef.current = null;
     });
@@ -76,7 +71,7 @@ const BudgetBar = ({ income, expenses }) => {
 
   useEffect(() => {
     updateFreeAmount()
-  }, []);
+  }, [income, expenses]);
 
   const renderBlock = (label, color, ratio) => (
     <div className='budgetContainer'>
