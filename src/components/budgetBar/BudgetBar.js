@@ -1,15 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './BudgetBar.css'
 
-const BudgetBar = ({ income, expenses }) => {
+const BudgetBar = ({ income, expenses, budgets, setBudgets }) => {
   const budgetBarWidth = 800;
   const budgetBlocksRef = useRef({});
   const budgetBlockPrevPageXRef = useRef(null);
-  const [budgets, setBudgets] = useState({
-    savings: 0.1,
-    investment: 0.2,
-    freeAmount: 1 - expenses / income - 0.3
-  });
 
   const calculateWidth = ratio => {
     const numberOfResizers = Object.keys(budgets).length - 1;

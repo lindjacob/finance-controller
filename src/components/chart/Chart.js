@@ -4,37 +4,37 @@ import "react-datepicker/dist/react-datepicker.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Chart.css'
 
-function Chart({initialInvestment}) {
+function Chart({ initialInvestment, monthlyInvestmentContribution }) {
     const [endDate, setEndDate] = useState(new Date());
     const [chartData, setChartData] = useState([]);
+    const interestRate = 7;
 
-    const interestRate = 0.07;
+    function calculateFutureValue(P, r, n, t, PMT) {
+        // P is the initial principal balance
+        // r is the annual interest rate (in decimal form)
+        // n is the number of times that interest is compounded per unit 
+        // t is the time the money is invested for in years
+        // PMT is the monthly contribution
+
+        r = r / 100;
+        const compoundInterest = P * Math.pow(1 + r / n, n * t);
+        const futureValueSeries = PMT * (Math.pow(1 + r / n, n * t) - 1) / (r / n);
+        const futureValue = compoundInterest + futureValueSeries;
+        
+        return futureValue;
+      }
 
     useEffect(() => {
-        const monthsBetweenDates = (startDate, endDate) => {
-            let months;
-            months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
-            months -= startDate.getMonth();
-            months += endDate.getMonth();
-            return months <= 0 ? 0 : months;
-        };
-
         const generateChartData = () => {
-            const months = monthsBetweenDates(new Date(), endDate);
+            const currentDate = new Date();
+            const years = endDate.getFullYear() - currentDate.getFullYear();
             let data = [];
-            let amount = initialInvestment;
 
-            for (let i = 0; i <= months; i++) {
-                const currentDate = new Date();
-                currentDate.setMonth(currentDate.getMonth() + i);
-
+            for (let i = 0; i <= years; i++) {
                 data.push({
-                    time: `${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`,
-                    investment: amount
+                    time: `${currentDate.getFullYear() + i}`,
+                    investment: calculateFutureValue(initialInvestment, interestRate, 12, i, monthlyInvestmentContribution)
                 });
-
-                // Compound Interest Calculation for monthly compounding
-                amount += amount * (interestRate / 12);
             }
 
             return data;
@@ -42,7 +42,7 @@ function Chart({initialInvestment}) {
 
         setChartData(generateChartData());
 
-    }, [endDate, initialInvestment]);
+    }, [endDate, initialInvestment, monthlyInvestmentContribution]);
 
     return (
         <div style={{ width: '100%', height: 400 }}>
@@ -51,8 +51,9 @@ function Chart({initialInvestment}) {
                 <DatePicker
                     selected={endDate}
                     onChange={(date) => setEndDate(date)}
-                    dateFormat="MM-yyyy"
-                    showMonthYearPicker
+                    dateFormat="yyyy"
+                    showYearPicker
+                    minDate={new Date()}
                 />
             </div>
 
