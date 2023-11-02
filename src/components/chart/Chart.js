@@ -4,9 +4,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Chart.css'
 
-function Chart({ initialInvestment, monthlyInvestmentContribution }) {
-    const [endDate, setEndDate] = useState(new Date());
+function Chart({ initialInvestment, budgets, income }) {
+    const [endDate, setEndDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() + 10)));
     const [chartData, setChartData] = useState([]);
+    const [budgetType, setBudgetType] = useState('investment');
     const interestRate = 7;
 
     function calculateFutureValue(P, r, n, t, PMT) {
@@ -30,11 +31,20 @@ function Chart({ initialInvestment, monthlyInvestmentContribution }) {
             const years = endDate.getFullYear() - currentDate.getFullYear();
             let data = [];
 
-            for (let i = 0; i <= years; i++) {
-                data.push({
-                    time: `${currentDate.getFullYear() + i}`,
-                    investment: calculateFutureValue(initialInvestment, interestRate, 12, i, monthlyInvestmentContribution)
-                });
+            if (budgetType === 'investment') {
+                for (let i = 0; i <= years; i++) {
+                    data.push({
+                        time: `${currentDate.getFullYear() + i}`,
+                        investment: calculateFutureValue(initialInvestment, interestRate, 12, i, budgets.investment * income)
+                    });
+                }
+            } else if (budgetType === 'savings') {
+                for (let i = 0; i <= years; i++) {
+                    data.push({
+                        time: `${currentDate.getFullYear() + i}`,
+                        savings: budgets.savings * income * 12 * i
+                    });
+                }
             }
 
             return data;
@@ -42,7 +52,7 @@ function Chart({ initialInvestment, monthlyInvestmentContribution }) {
 
         setChartData(generateChartData());
 
-    }, [endDate, initialInvestment, monthlyInvestmentContribution]);
+    }, [endDate, budgets, income, budgetType]);
 
     return (
         <div style={{ width: '100%', height: 400 }}>
@@ -55,6 +65,11 @@ function Chart({ initialInvestment, monthlyInvestmentContribution }) {
                     showYearPicker
                     minDate={new Date()}
                 />
+                <label>Select Budget Type: </label>
+                <select value={budgetType} onChange={(e) => setBudgetType(e.target.value)}>
+                    <option value="investment">Investment</option>
+                    <option value="savings">Savings</option>
+                </select>
             </div>
 
             <ResponsiveContainer>
@@ -63,7 +78,8 @@ function Chart({ initialInvestment, monthlyInvestmentContribution }) {
                     <XAxis dataKey="time" />
                     <YAxis />
                     <Tooltip />
-                    <Line type="monotone" dataKey="investment" stroke="#8884d8" />
+                    {budgetType === 'investment' && <Line type="monotone" dataKey="investment" stroke="#8884d8" />}
+                    {budgetType === 'savings' && <Line type="monotone" dataKey="savings" stroke="#82ca9d" />}
                 </LineChart>
             </ResponsiveContainer>
         </div>

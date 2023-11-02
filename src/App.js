@@ -26,7 +26,7 @@ function App() {
         <InputField name="Expenses" value={expenses} onChange={(e) => setExpenses(e.target.value)} type="number" />
         <InputField name="Initial investment amount" value={initialInvestment} onChange={(e) => setInitialInvestment(e.target.value)} type="number" />
         <BudgetBar income={income} expenses={expenses} budgets={budgets} setBudgets={setBudgets} />
-        <Chart initialInvestment={initialInvestment} monthlyInvestmentContribution={budgets.investment * income} />
+        <Chart initialInvestment={initialInvestment} budgets={budgets} income={income} />
       </main>
       
       <footer>
