@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import './BudgetBar.css'
+import React, { useState, useEffect, useRef } from 'react';
 
-const BudgetBar = ({ income, expenses, budgets, setBudgets }) => {
+const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, description }) => {
+  const [displayMode, setDisplayMode] = useState('percentage')
   const budgetBarWidth = 800;
   const budgetBlocksRef = useRef({});
   const budgetBlockPrevPageXRef = useRef(null);
@@ -69,24 +69,23 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets }) => {
   }, [income, expenses]);
 
   const renderBlock = (label, color, ratio) => (
-    <div className='budgetContainer'>
+    <div className='flex'>
       <div
         id={label.toLowerCase()}
-        className='budgetBlock'
+        className={`${color} h-14 self-center`}
         ref={budgetBlock => {
           budgetBlocksRef.current[label.toLowerCase()] = {};
           budgetBlocksRef.current[label.toLowerCase()].budgetBlock = budgetBlock;
         }}
-        style={{ width: calculateWidth(ratio), background: color }}
+        style={{ width: calculateWidth(ratio)}}
       >
-        <div className='budgetLabel' >
+        <div className='flex flex-col' >
           <span>{label}</span>
-          <span>{(ratio * 100).toFixed(1)}%</span>
-          <span>{Math.round(ratio * income)}</span>
+          <span>{displayMode === 'percentage' ? `${(ratio * 100).toFixed(1)}%` : `${Math.round(ratio * income)}`}</span>
         </div>
       </div>
       <div
-        className='resizer'
+        className='relative right-0 top-0 rounded-sm cursor-ew-resize bg-primary w-1 z-10 h-full'
         ref={budgetBlock => { budgetBlocksRef.current[label.toLowerCase()].resizer = budgetBlock; }}
         onMouseDown={(e) => controlBudgetBlock(e, label.toLowerCase())}
       >
@@ -95,21 +94,32 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets }) => {
   );
 
   return (
-    <div id='budgetBar'>
-      <div id='expenses' className='budgetBlock' style={{ width: calculateWidth(expenses / income), background: 'red' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
-          <span>Expenses</span>
-          <span>{((expenses / income) * 100).toFixed(1)}%</span>
-          <span>{expenses}</span>
+    <div className="container">
+      <div className='headerElement'>
+        <div className='w-1/2'>
+          <div className='headline'>{headline}</div>
+          <div className='description'>{description}</div>
+        </div>
+        <div className='flex justify-end w-1/2'>
+          <div className={`btn-sq ${displayMode === 'numeric' ? 'btn-focus' : ''}`} onClick={() => setDisplayMode('numeric')}>$</div>
+          <div className={`btn-sq ${displayMode === 'percentage' ? 'btn-focus' : ''}`} onClick={() => setDisplayMode('percentage')}>%</div>
         </div>
       </div>
-      {renderBlock('Savings', 'blue', budgets.savings)}
-      {renderBlock('Investment', 'green', budgets.investment)}
-      <div id='freeAmount' className='budgetBlock' style={{ width: calculateWidth(budgets.freeAmount), background: 'purple' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1' }}>
-          <span>Free Amount</span>
-          <span>{(budgets.freeAmount * 100).toFixed(1)}%</span>
-          <span>{Math.round(budgets.freeAmount * income)}</span>
+
+      <div className='flex h-16 w-[800px] text-white'>
+        <div className='bg-rose-400 h-14 self-center' style={{ width: calculateWidth(expenses / income)}}>
+          <div className='flex flex-col'>
+            <span>Expenses</span>
+            <span>{displayMode === 'percentage' ? `${((expenses / income) * 100).toFixed(1)}%` : `${expenses}`}</span>
+          </div>
+        </div>
+        {renderBlock('Savings', 'bg-cyan-500', budgets.savings)}
+        {renderBlock('Investment', 'bg-emerald-500', budgets.investment)}
+        <div id='freeAmount' className='bg-amber-400 h-14 self-center' style={{ width: calculateWidth(budgets.freeAmount)}}>
+          <div className='flex flex-col'>
+            <span>Free Amount</span>
+            <span>{displayMode === 'percentage' ? `${(budgets.freeAmount * 100).toFixed(1)}%` : `${Math.round(budgets.freeAmount * income)}`}</span>
+          </div>
         </div>
       </div>
     </div>

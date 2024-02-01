@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import './Chart.css'
 
-function Chart({ initialInvestment, budgets, income }) {
-    const [endDate, setEndDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() + 10)));
+function Chart({ initialInvestment, budgets, budgetType, income, headline, description }) {
     const [chartData, setChartData] = useState([]);
-    const [budgetType, setBudgetType] = useState('investment');
+    const [years, setYears] = useState(50);
     const interestRate = 7;
 
     function calculateFutureValue(P, r, n, t, PMT) {
         // P is the initial principal balance
-        // r is the annual interest rate (in decimal form)
+        // r is the annual interest rate
         // n is the number of times that interest is compounded per unit 
         // t is the time the money is invested for in years
         // PMT is the monthly contribution
@@ -21,14 +18,13 @@ function Chart({ initialInvestment, budgets, income }) {
         const compoundInterest = P * Math.pow(1 + r / n, n * t);
         const futureValueSeries = PMT * (Math.pow(1 + r / n, n * t) - 1) / (r / n);
         const futureValue = compoundInterest + futureValueSeries;
-        
+
         return futureValue;
-      }
+    }
 
     useEffect(() => {
         const generateChartData = () => {
             const currentDate = new Date();
-            const years = endDate.getFullYear() - currentDate.getFullYear();
             let data = [];
 
             if (budgetType === 'investment') {
@@ -52,24 +48,21 @@ function Chart({ initialInvestment, budgets, income }) {
 
         setChartData(generateChartData());
 
-    }, [endDate, budgets, income, budgetType]);
+    }, [budgets, income, budgetType, initialInvestment, years]);
 
     return (
-        <div style={{ width: '100%', height: 400 }}>
-            <div>
-                <label>Select End Date: </label>
-                <DatePicker
-                    selected={endDate}
-                    onChange={(date) => setEndDate(date)}
-                    dateFormat="yyyy"
-                    showYearPicker
-                    minDate={new Date()}
-                />
-                <label>Select Budget Type: </label>
-                <select value={budgetType} onChange={(e) => setBudgetType(e.target.value)}>
-                    <option value="investment">Investment</option>
-                    <option value="savings">Savings</option>
-                </select>
+        <div className='container'>
+            <div className='headerElement'>
+                <div className='w-1/2'>
+                    <div className='headline'>{headline}</div>
+                    <div className='description'>{description}</div>
+                </div>
+                <div className='flex justify-end w-1/2'>
+                    <div className={`btn-sq ${years === 10 ? 'btn-focus' : ''}`} onClick={() => setYears(10)}>10y</div>
+                    <div className={`btn-sq ${years === 20 ? 'btn-focus' : ''}`} onClick={() => setYears(20)}>20y</div>
+                    <div className={`btn-sq ${years === 30 ? 'btn-focus' : ''}`} onClick={() => setYears(30)}>30y</div>
+                    <div className={`btn-sq ${years === 50 ? 'btn-focus' : ''}`} onClick={() => setYears(50)}>50y</div>
+                </div>
             </div>
 
             <ResponsiveContainer>
