@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, linearGradient } from 'recharts';
 
 function Chart({ initialInvestment, budgets, budgetType, income, headline, description }) {
     const [chartData, setChartData] = useState([]);
@@ -30,14 +30,14 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
             if (budgetType === 'investment') {
                 for (let i = 0; i <= years; i++) {
                     data.push({
-                        time: `${currentDate.getFullYear() + i}`,
+                        date: currentDate.getFullYear() + i,
                         investment: calculateFutureValue(initialInvestment, interestRate, 12, i, budgets.investment * income)
                     });
                 }
             } else if (budgetType === 'savings') {
                 for (let i = 0; i <= years; i++) {
                     data.push({
-                        time: `${currentDate.getFullYear() + i}`,
+                        date: currentDate.getFullYear() + i,
                         savings: budgets.savings * income * 12 * i
                     });
                 }
@@ -65,15 +65,65 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
                 </div>
             </div>
 
-            <ResponsiveContainer>
-                <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
+            <ResponsiveContainer height={400}>
+                <AreaChart data={chartData}>
+                    <defs>
+                        <linearGradient id='colorInvestment' x1='0' y1='0' x2='0' y2='1'>
+                            <stop offset='0%' stopColor='#10b981' stopOpacity='0.7' />
+                            <stop offset='75%' stopColor='#10b981' stopOpacity='0.15' />
+                        </linearGradient>
+                        <linearGradient id='colorSavings' x1='0' y1='0' x2='0' y2='1'>
+                            <stop offset='0%' stopColor='#06b6d4' stopOpacity='0.7' />
+                            <stop offset='75%' stopColor='#06b6d4' stopOpacity='0.15' />
+                        </linearGradient>
+                    </defs>
+                    {budgetType === 'investment' && <Area dataKey='investment' stroke='#10b981' fill='url(#colorInvestment)' />}
+                    {budgetType === 'savings' && <Area dataKey='savings' stroke='#06b6d4' fill='url(#colorSavings)' />}
+                    <XAxis dataKey='date' axisLine={false} tickLine={false} tickFormatter={str => {
+                        const currentYear = new Date().getFullYear();
+                        if (years === 10) {
+                            if (str === currentYear || 
+                                str === currentYear + 2 || 
+                                str === currentYear + 4 || 
+                                str === currentYear + 6 || 
+                                str === currentYear + 8 || 
+                                str === currentYear + 10) {
+                                    return str;
+                            }
+                        } else if (years === 20) {
+                            if (str === currentYear || 
+                                str === currentYear + 5 || 
+                                str === currentYear + 10 || 
+                                str === currentYear + 15 || 
+                                str === currentYear + 20) {
+                                    return str;
+                            }
+                        } else if (years === 30) {
+                            if (str === currentYear || 
+                                str === currentYear + 5 || 
+                                str === currentYear + 10 || 
+                                str === currentYear + 15 || 
+                                str === currentYear + 20 ||
+                                str === currentYear + 25 ||
+                                str === currentYear + 30) {
+                                    return str;
+                            }
+                        } else {
+                            if (str === currentYear || 
+                                str === currentYear + 10 || 
+                                str === currentYear + 20 || 
+                                str === currentYear + 30 || 
+                                str === currentYear + 40 || 
+                                str === currentYear + 50) {
+                                    return str;
+                            }
+                        }
+                        return '';
+                    }} />
+                    <YAxis axisLine={false} tickLine={false} tickCount={8} tickFormatter={number => `$${new Intl.NumberFormat().format(number)}`} />
                     <Tooltip />
-                    {budgetType === 'investment' && <Line type="monotone" dataKey="investment" stroke="#8884d8" />}
-                    {budgetType === 'savings' && <Line type="monotone" dataKey="savings" stroke="#82ca9d" />}
-                </LineChart>
+                    <CartesianGrid opacity={0.2} vertical={false} />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
