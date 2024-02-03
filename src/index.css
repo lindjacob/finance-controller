@@ -4,11 +4,11 @@
 
 @layer components {
     .container {
-        @apply bg-white p-4 m-1 border-gray-100 border-[1px] rounded-sm shadow-sm;
+        @apply bg-white p-4 border-gray-100 border-[1px] rounded-sm shadow-sm;
     }
 
     .headerElement {
-        @apply flex justify-between mb-3;
+        @apply flex basis-full justify-between mb-5;
     }
 
     .headline {
@@ -20,7 +20,7 @@
     }
 
     .btn-sq {
-        @apply w-11 h-11 m-1 p-2 bg-secondary rounded-md
+        @apply w-11 h-11 m-1 p-2 bg-secondary rounded-md text-center
         text-black cursor-pointer hover:bg-primary hover:text-white;
     }
 

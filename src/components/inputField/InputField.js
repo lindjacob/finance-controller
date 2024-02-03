@@ -1,5 +1,4 @@
 import React from 'react';
-import './InputField.css'
 
 function InputField({name, type, value, onChange, className}) {
   return (

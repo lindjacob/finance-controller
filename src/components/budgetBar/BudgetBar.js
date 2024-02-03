@@ -94,7 +94,8 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, descriptio
   );
 
   return (
-    <div className="container">
+    <div className="container flex flex-wrap justify-center">
+
       <div className='headerElement'>
         <div className='w-1/2'>
           <div className='headline'>{headline}</div>
@@ -106,7 +107,7 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, descriptio
         </div>
       </div>
 
-      <div className='flex h-16 w-[800px] text-white'>
+      <div className='flex h-16 w-[800px] text-center text-white'>
         <div className='bg-rose-400 h-14 self-center' style={{ width: calculateWidth(expenses / income)}}>
           <div className='flex flex-col'>
             <span>Expenses</span>
@@ -122,6 +123,7 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, descriptio
           </div>
         </div>
       </div>
+
     </div>
   );
 };

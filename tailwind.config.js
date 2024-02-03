@@ -8,7 +8,10 @@ module.exports = {
       colors: {
         primary: '#9333EA',
         secondary: '#e5e7eb'
-      }
+      },
+      gridTemplateRows: {
+        'custom-3': 'auto auto 2fr'
+      }  
     },
   },
   plugins: [],

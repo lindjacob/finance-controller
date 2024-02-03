@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-//import logo from './logo.svg';
-import './App.css';
 import Chart from './components/chart/Chart';
 import BudgetBar from './components/budgetBar/BudgetBar';
 import InputField from './components/inputField/InputField';
@@ -16,48 +14,52 @@ function App() {
   });
 
   return (
-    <div className="App bg-gray-50 text-primary caret-transparent select-none">
-      <header className="App-header">
+    <div className="flex bg-gray-50 caret-transparent select-none">
 
+      <header className="App-header">
+        {/* Header content goes here */}
       </header>
 
-      <main className='flex flex-wrap justify-center mx-20 mt-10 h-screen'>
-        <div className='container'>
+      <main className='grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
+
+        <div className='col-span-2 container'>
           <InputField name="Income" value={income} onChange={(e) => setIncome(e.target.value)} type="number" />
           <InputField name="Expenses" value={expenses} onChange={(e) => setExpenses(e.target.value)} type="number" />
           <InputField name="Initial investment amount" value={initialInvestment} onChange={(e) => setInitialInvestment(e.target.value)} type="number" />
         </div>
-        <BudgetBar
-          income={income}
-          expenses={expenses}
-          budgets={budgets}
-          setBudgets={setBudgets}
-          headline={'Income Allocation'}
-          description={'Set your income allocation by adjusting the size of the individual account allocations'}
-        />
-        <div className='flex'>
-          <div className='w-1/2'>
-            <Chart
-              initialInvestment={initialInvestment}
-              income={income}
-              budgets={budgets}
-              budgetType={'investment'}
-              headline={'Investment Forecast'}
-              description={'The graph shows you the yearly growth of your invetment account with an annual 7% increase'}
-            />
-          </div>
-          <div className='w-1/2'>
-            <Chart
-              initialInvestment={initialInvestment}
-              income={income}
-              budgets={budgets}
-              budgetType={'savings'}
-              headline={'Savings Forecast'}
-              description={'The graph shows you the yearly growth of your savings account'}
-            />
-          </div>
+
+        <div className='col-span-2'>
+          <BudgetBar
+            income={income}
+            expenses={expenses}
+            budgets={budgets}
+            setBudgets={setBudgets}
+            headline={'Income Allocation'}
+            description={'Set your income allocation by adjusting the size of the individual account allocations'}
+          />
         </div>
 
+        <div className='col-span-1'>
+          <Chart
+            initialInvestment={initialInvestment}
+            income={income}
+            budgets={budgets}
+            budgetType={'investment'}
+            headline={'Investment Forecast'}
+            description={'The graph shows you the yearly growth of your invetment account with an annual 7% increase'}
+          />
+        </div>
+
+        <div className='col-span-1'>
+          <Chart
+            initialInvestment={initialInvestment}
+            income={income}
+            budgets={budgets}
+            budgetType={'savings'}
+            headline={'Savings Forecast'}
+            description={'The graph shows you the yearly growth of your savings account'}
+          />
+        </div>
 
       </main>
 
