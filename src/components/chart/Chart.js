@@ -27,20 +27,20 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
             const currentDate = new Date();
             let data = [];
 
-            if (budgetType === 'investment') {
-                for (let i = 0; i <= years; i++) {
-                    data.push({
-                        date: currentDate.getFullYear() + i,
-                        investment: calculateFutureValue(initialInvestment, interestRate, 12, i, budgets.investment * income)
-                    });
+            for (let i = 0; i <= years; i++) {
+                // When years >= 30, only push data every 5 years
+                // This ensures the numbers along the x-axis are showing
+                if (years >= 30 && i % 5 !== 0) continue;
+
+                const yearData = { date: currentDate.getFullYear() + i };
+
+                if (budgetType === 'investment') {
+                    yearData.investment = calculateFutureValue(initialInvestment, interestRate, 12, i, budgets.investment * income);
+                } else if (budgetType === 'savings') {
+                    yearData.savings = budgets.savings * income * 12 * i;
                 }
-            } else if (budgetType === 'savings') {
-                for (let i = 0; i <= years; i++) {
-                    data.push({
-                        date: currentDate.getFullYear() + i,
-                        savings: budgets.savings * income * 12 * i
-                    });
-                }
+
+                data.push(yearData);
             }
 
             return data;
@@ -49,6 +49,17 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
         setChartData(generateChartData());
 
     }, [budgets, income, budgetType, initialInvestment, years]);
+
+    function CustomToolTip({ active, payload, label }) {
+        if (active) {
+            return (
+                <div className='container'>
+                    <h4>{label}</h4>
+                    <p>${new Intl.NumberFormat().format(payload[0].value.toFixed(0))}</p>
+                </div>
+            )
+        }
+    }
 
     return (
         <div className='container'>
@@ -81,47 +92,55 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
                     {budgetType === 'savings' && <Area dataKey='savings' stroke='#06b6d4' fill='url(#colorSavings)' />}
                     <XAxis dataKey='date' axisLine={false} tickLine={false} tickFormatter={str => {
                         const currentYear = new Date().getFullYear();
+                        if (str === currentYear) {
+                            return str;
+                        }
                         if (years === 10) {
-                            if (str === currentYear || 
-                                str === currentYear + 2 || 
-                                str === currentYear + 4 || 
-                                str === currentYear + 6 || 
-                                str === currentYear + 8 || 
+                            if (str === currentYear + 2 ||
+                                str === currentYear + 4 ||
+                                str === currentYear + 6 ||
+                                str === currentYear + 8 ||
                                 str === currentYear + 10) {
-                                    return str;
+                                return str;
                             }
                         } else if (years === 20) {
-                            if (str === currentYear || 
-                                str === currentYear + 5 || 
-                                str === currentYear + 10 || 
-                                str === currentYear + 15 || 
+                            if (str === currentYear + 5 ||
+                                str === currentYear + 10 ||
+                                str === currentYear + 15 ||
                                 str === currentYear + 20) {
-                                    return str;
+                                return str;
                             }
                         } else if (years === 30) {
-                            if (str === currentYear || 
-                                str === currentYear + 5 || 
-                                str === currentYear + 10 || 
-                                str === currentYear + 15 || 
+                            if (str === currentYear + 5 ||
+                                str === currentYear + 10 ||
+                                str === currentYear + 15 ||
                                 str === currentYear + 20 ||
                                 str === currentYear + 25 ||
                                 str === currentYear + 30) {
-                                    return str;
+                                return str;
                             }
                         } else {
-                            if (str === currentYear || 
-                                str === currentYear + 10 || 
-                                str === currentYear + 20 || 
-                                str === currentYear + 30 || 
-                                str === currentYear + 40 || 
+                            if (str === currentYear + 10 ||
+                                str === currentYear + 20 ||
+                                str === currentYear + 30 ||
+                                str === currentYear + 40 ||
                                 str === currentYear + 50) {
-                                    return str;
+                                return str;
                             }
                         }
                         return '';
                     }} />
-                    <YAxis axisLine={false} tickLine={false} tickCount={8} tickFormatter={number => `$${new Intl.NumberFormat().format(number)}`} />
-                    <Tooltip />
+                    <YAxis axisLine={false} tickLine={false} tickCount={8} tickFormatter={number => {
+                        if (number >= 1000000) {
+                            const formattedNumber = (number / 1000000).toFixed(1);
+                            return `${formattedNumber.endsWith('.0') ? formattedNumber.slice(0, -2) : formattedNumber}M`;
+                        } else if (number >= 1000) {
+                            const formattedNumber = (number / 1000).toFixed(1);
+                            return `${formattedNumber.endsWith('.0') ? formattedNumber.slice(0, -2) : formattedNumber}K`;
+                        }
+                        return number.toString();
+                    }} />
+                    <Tooltip content={<CustomToolTip />} />
                     <CartesianGrid opacity={0.2} vertical={false} />
                 </AreaChart>
             </ResponsiveContainer>
