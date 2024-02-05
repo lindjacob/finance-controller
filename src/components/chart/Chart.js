@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, linearGradient } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-function Chart({ initialInvestment, budgets, budgetType, income, headline, description }) {
+function Chart({ budgets, budgetType, income, headline, description }) {
     const [chartData, setChartData] = useState([]);
     const [years, setYears] = useState(50);
     const interestRate = 7;
@@ -35,7 +35,7 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
                 const yearData = { date: currentDate.getFullYear() + i };
 
                 if (budgetType === 'investment') {
-                    yearData.investment = calculateFutureValue(initialInvestment, interestRate, 12, i, budgets.investment * income);
+                    yearData.investment = calculateFutureValue(0, interestRate, 12, i, budgets.investment * income);
                 } else if (budgetType === 'savings') {
                     yearData.savings = budgets.savings * income * 12 * i;
                 }
@@ -48,7 +48,7 @@ function Chart({ initialInvestment, budgets, budgetType, income, headline, descr
 
         setChartData(generateChartData());
 
-    }, [budgets, income, budgetType, initialInvestment, years]);
+    }, [budgets, income, budgetType, years]);
 
     function CustomToolTip({ active, payload, label }) {
         if (active) {

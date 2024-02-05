@@ -6,7 +6,6 @@ import InputField from './components/inputField/InputField';
 function App() {
   const [income, setIncome] = useState(3200);
   const [expenses, setExpenses] = useState(1300);
-  const [initialInvestment, setInitialInvestment] = useState(1000);
   const [budgets, setBudgets] = useState({
     savings: 0.1,
     investment: 0.2,
@@ -19,7 +18,10 @@ function App() {
       <main className='grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
 
         <div className='col-span-2 flex justify-between container'>
-          <h1 className='h1'>Simple Finance Planner</h1>
+          <div>
+            <h1 className='h1'>Simple Finance Planner</h1>
+            <p className='description'>Add your income and expenses to start planning your finances</p>
+          </div>
           <div className='flex'>
             <InputField name="Income" value={income} onChange={(e) => setIncome(e.target.value)} />
             <InputField name="Expenses" value={expenses} onChange={(e) => setExpenses(e.target.value)} />
@@ -40,7 +42,6 @@ function App() {
 
         <div className='col-span-1'>
           <Chart
-            initialInvestment={initialInvestment}
             income={income}
             budgets={budgets}
             budgetType={'investment'}
@@ -51,7 +52,6 @@ function App() {
 
         <div className='col-span-1'>
           <Chart
-            initialInvestment={initialInvestment}
             income={income}
             budgets={budgets}
             budgetType={'savings'}
