@@ -16,16 +16,15 @@ function App() {
   return (
     <div className="flex bg-gray-50 caret-transparent select-none">
 
-      <header className="App-header">
-        {/* Header content goes here */}
-      </header>
-
       <main className='grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
 
-        <div className='col-span-2 container'>
-          <InputField name="Income" value={income} onChange={(e) => setIncome(e.target.value)} type="number" />
-          <InputField name="Expenses" value={expenses} onChange={(e) => setExpenses(e.target.value)} type="number" />
-          <InputField name="Initial investment amount" value={initialInvestment} onChange={(e) => setInitialInvestment(e.target.value)} type="number" />
+        <div className='col-span-2 flex justify-between container'>
+          <h1 className='h1'>Simple Finance Planner</h1>
+          <div className='flex'>
+            <InputField name="Income" value={income} onChange={(e) => setIncome(e.target.value)} />
+            <InputField name="Expenses" value={expenses} onChange={(e) => setExpenses(e.target.value)} />
+          </div>
+          {/* <InputField name="Initial investment amount" value={initialInvestment} onChange={(e) => setInitialInvestment(e.target.value)} type="number" /> */}
         </div>
 
         <div className='col-span-2'>

@@ -3,6 +3,26 @@
 @tailwind utilities;
 
 @layer components {
+    .h1 {
+        @apply text-5xl font-extrabold
+    }
+
+    .h2 {
+        @apply text-4xl font-bold
+    }
+
+    .h3 {
+        @apply text-3xl font-bold
+    }
+
+    .h4 {
+        @apply text-2xl font-bold
+    }
+
+    .h5 {
+        @apply text-xl font-bold
+    }
+
     .container {
         @apply bg-white p-4 border-gray-100 border-[1px] rounded-sm shadow-sm;
     }
