@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, description }) => {
+const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline, description }) => {
   const [displayMode, setDisplayMode] = useState('percentage')
   const budgetBarWidth = 800;
   const budgetBlocksRef = useRef({});
@@ -27,6 +27,7 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, descriptio
   }
 
   const resize = (e, budgetLabel) => {
+    setEditing(true);
     let ratioChange = (e.pageX - budgetBlockPrevPageXRef.current) / budgetBarWidth;
     budgetBlockPrevPageXRef.current = e.pageX
 
@@ -116,7 +117,7 @@ const BudgetBar = ({ income, expenses, budgets, setBudgets, headline, descriptio
         </div>
         {renderBlock('Savings', 'bg-cyan-500', budgets.savings)}
         {renderBlock('Investment', 'bg-emerald-500', budgets.investment)}
-        <div id='freeAmount' className='bg-amber-400 h-14 self-center' style={{ width: calculateWidth(budgets.freeAmount)}}>
+        <div className='bg-amber-400 h-14 self-center' style={{ width: calculateWidth(budgets.freeAmount)}}>
           <div className='flex flex-col'>
             <span>Free Amount</span>
             <span>{displayMode === 'percentage' ? `${(budgets.freeAmount * 100).toFixed(1)}%` : `${Math.round(budgets.freeAmount * income)}`}</span>

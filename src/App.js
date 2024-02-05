@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Banner from './components/Banner';
 import Chart from './components/chart/Chart';
 import BudgetBar from './components/budgetBar/BudgetBar';
 import InputField from './components/inputField/InputField';
 
 function App() {
+  const [editing, setEditing] = useState(false);
   const [income, setIncome] = useState(3200);
   const [expenses, setExpenses] = useState(1300);
   const [budgets, setBudgets] = useState({
@@ -11,9 +13,17 @@ function App() {
     investment: 0.2,
     freeAmount: 1 - expenses / income - 0.3
   });
+  const [prevBudgets, setPrevBudgets] = useState(budgets);
+
+  useEffect(() => {
+    if (editing) {
+      setPrevBudgets(budgets);
+    }
+  }, [editing]);
 
   return (
     <div className="flex bg-gray-50 caret-transparent select-none">
+      <Banner editing={editing} setEditing={setEditing} prevBudgets={prevBudgets} setBudgets={setBudgets} />
 
       <main className='grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
 
@@ -31,10 +41,13 @@ function App() {
 
         <div className='col-span-2'>
           <BudgetBar
+            setEditing={setEditing}
             income={income}
             expenses={expenses}
             budgets={budgets}
+            prevBudgets={prevBudgets}
             setBudgets={setBudgets}
+            setPrevBudgets={setPrevBudgets}
             headline={'Income Allocation'}
             description={'Set your income allocation by adjusting the size of the individual account allocations'}
           />
@@ -42,8 +55,10 @@ function App() {
 
         <div className='col-span-1'>
           <Chart
+            editing={editing}
             income={income}
             budgets={budgets}
+            prevBudgets={prevBudgets}
             budgetType={'investment'}
             headline={'Investment Forecast'}
             description={'The graph shows you the yearly growth of your invetment account with an annual 7% increase'}
@@ -52,8 +67,10 @@ function App() {
 
         <div className='col-span-1'>
           <Chart
+            editing={editing}
             income={income}
             budgets={budgets}
+            prevBudgets={prevBudgets}
             budgetType={'savings'}
             headline={'Savings Forecast'}
             description={'The graph shows you the yearly growth of your savings account'}

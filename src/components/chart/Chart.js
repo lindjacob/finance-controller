@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-function Chart({ budgets, budgetType, income, headline, description }) {
+function Chart({ editing, budgets, prevBudgets, budgetType, income, headline, description }) {
     const [chartData, setChartData] = useState([]);
     const [years, setYears] = useState(50);
     const interestRate = 7;
@@ -22,40 +22,49 @@ function Chart({ budgets, budgetType, income, headline, description }) {
         return futureValue;
     }
 
-    useEffect(() => {
-        const generateChartData = () => {
-            const currentDate = new Date();
-            let data = [];
+    const generateChartData = () => {
+        const currentDate = new Date();
+        let data = [];
 
-            for (let i = 0; i <= years; i++) {
-                // When years >= 30, only push data every 5 years
-                // This ensures the numbers along the x-axis are showing
-                if (years >= 30 && i % 5 !== 0) continue;
+        for (let i = 0; i <= years; i++) {
+            // When years >= 30, only push data every 5 years
+            // This ensures the numbers along the x-axis are showing
+            if (years >= 30 && i % 5 !== 0) continue;
 
-                const yearData = { date: currentDate.getFullYear() + i };
+            const yearData = { date: currentDate.getFullYear() + i };
 
-                if (budgetType === 'investment') {
-                    yearData.investment = calculateFutureValue(0, interestRate, 12, i, budgets.investment * income);
-                } else if (budgetType === 'savings') {
-                    yearData.savings = budgets.savings * income * 12 * i;
-                }
-
-                data.push(yearData);
+            if (budgetType === 'investment') {
+                yearData.investment = calculateFutureValue(0, interestRate, 12, i, budgets.investment * income);
+                yearData.prev = calculateFutureValue(0, interestRate, 12, i, prevBudgets.investment * income);
+            } else if (budgetType === 'savings') {
+                yearData.savings = budgets.savings * income * 12 * i;
+                yearData.prev = prevBudgets.savings * income * 12 * i;
             }
 
-            return data;
+            data.push(yearData);
         }
 
-        setChartData(generateChartData());
+        return data;
+    }
 
+    useEffect(() => {
+        setChartData(generateChartData(budgets));
     }, [budgets, income, budgetType, years]);
+
+    useEffect(() => {
+
+    }, [editing]);
 
     function CustomToolTip({ active, payload, label }) {
         if (active) {
+            const diff = payload[0].value.toFixed(0) - payload[0].payload.prev.toFixed(0)
+
             return (
                 <div className='container'>
-                    <h4>{label}</h4>
-                    <p>${new Intl.NumberFormat().format(payload[0].value.toFixed(0))}</p>
+                    <h4>Year: {label}</h4>
+                    <p>Current: ${new Intl.NumberFormat().format(payload[0].value.toFixed(0))}</p>
+                    {editing && <p>Previous: ${new Intl.NumberFormat().format(payload[0].payload.prev.toFixed(0))}</p>}
+                    {editing && <p className={diff < 0 ? 'text-red-600' : 'text-green-600'} >Difference: ${new Intl.NumberFormat().format(diff.toFixed(0))}</p>}
                 </div>
             )
         }
@@ -87,9 +96,14 @@ function Chart({ budgets, budgetType, income, headline, description }) {
                             <stop offset='0%' stopColor='#06b6d4' stopOpacity='0.7' />
                             <stop offset='75%' stopColor='#06b6d4' stopOpacity='0.15' />
                         </linearGradient>
+                        <linearGradient id='colorPrev' x1='0' y1='0' x2='0' y2='1'>
+                            <stop offset='0%' stopColor='#ffffff' stopOpacity='0.7' />
+                            <stop offset='75%' stopColor='#71717a' stopOpacity='0.15' />
+                        </linearGradient>
                     </defs>
                     {budgetType === 'investment' && <Area dataKey='investment' stroke='#10b981' fill='url(#colorInvestment)' />}
                     {budgetType === 'savings' && <Area dataKey='savings' stroke='#06b6d4' fill='url(#colorSavings)' />}
+                    {editing && <Area dataKey='prev' stroke='#71717a' fill='url(#colorPrev)' />}
                     <XAxis dataKey='date' axisLine={false} tickLine={false} tickFormatter={str => {
                         const currentYear = new Date().getFullYear();
                         if (str === currentYear) {
