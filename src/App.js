@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Banner from './components/Banner';
-import Chart from './components/chart/Chart';
-import BudgetBar from './components/budgetBar/BudgetBar';
-import InputField from './components/inputField/InputField';
+import Chart from './components/Chart';
+import BudgetBar from './components/BudgetBar';
+import InputField from './components/InputField';
 
 function App() {
   const [editing, setEditing] = useState(false);
@@ -22,10 +22,10 @@ function App() {
   }, [editing]);
 
   return (
-    <div className="flex bg-gray-50 caret-transparent select-none">
+    <div className="flex justify-center bg-gray-50 caret-transparent select-none">
       <Banner editing={editing} setEditing={setEditing} prevBudgets={prevBudgets} setBudgets={setBudgets} />
 
-      <main className='grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
+      <main className='max-w-[1500px] grid grid-cols-2 grid-rows-custom-3 gap-3 auto-cols-min mx-20 mt-10 h-screen'>
 
         <div className='col-span-2 flex justify-between container'>
           <div>
