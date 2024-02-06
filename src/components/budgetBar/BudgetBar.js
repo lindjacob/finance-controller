@@ -1,10 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline, description }) => {
-  const [displayMode, setDisplayMode] = useState('percentage')
-  const budgetBarWidth = 800;
+  const [displayMode, setDisplayMode] = useState('percentage');
+  const containerElement = useRef(null);
   const budgetBlocksRef = useRef({});
   const budgetBlockPrevPageXRef = useRef(null);
+  const [budgetBarWidth, setBudgetBarWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerElement.current) {
+        setBudgetBarWidth(containerElement.current.offsetWidth);
+      }
+    };
+
+    window.addEventListener('resize', updateWidth);
+    updateWidth()
+
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   const calculateWidth = ratio => {
     const numberOfResizers = Object.keys(budgets).length - 1;
@@ -67,7 +81,7 @@ const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline
 
   useEffect(() => {
     updateFreeAmount()
-  }, [income, expenses]);
+  }, [income, expenses, budgetBarWidth]);
 
   const renderBlock = (label, color, ratio) => (
     <div className='flex'>
@@ -78,7 +92,7 @@ const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline
           budgetBlocksRef.current[label.toLowerCase()] = {};
           budgetBlocksRef.current[label.toLowerCase()].budgetBlock = budgetBlock;
         }}
-        style={{ width: calculateWidth(ratio)}}
+        style={{ width: calculateWidth(ratio) }}
       >
         <div className='flex flex-col' >
           <span>{label}</span>
@@ -95,8 +109,7 @@ const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline
   );
 
   return (
-    <div className="container flex flex-wrap justify-center">
-
+    <div ref={containerElement} className="container flex flex-wrap justify-center">
       <div className='headerElement'>
         <div className='w-1/2'>
           <div className='headline'>{headline}</div>
@@ -107,9 +120,8 @@ const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline
           <div className={`btn-sq ${displayMode === 'percentage' ? 'btn-focus' : ''}`} onClick={() => setDisplayMode('percentage')}>%</div>
         </div>
       </div>
-
-      <div className='flex h-16 w-[800px] text-center text-white'>
-        <div className='bg-rose-400 h-14 self-center' style={{ width: calculateWidth(expenses / income)}}>
+      <div className={`flex h-16 w-full text-center text-white`}>
+        <div className='bg-rose-400 h-14 self-center' style={{ width: calculateWidth(expenses / income) }}>
           <div className='flex flex-col'>
             <span>Expenses</span>
             <span>{displayMode === 'percentage' ? `${((expenses / income) * 100).toFixed(1)}%` : `${expenses}`}</span>
@@ -117,7 +129,7 @@ const BudgetBar = ({ setEditing, income, expenses, budgets, setBudgets, headline
         </div>
         {renderBlock('Savings', 'bg-cyan-500', budgets.savings)}
         {renderBlock('Investment', 'bg-emerald-500', budgets.investment)}
-        <div className='bg-amber-400 h-14 self-center' style={{ width: calculateWidth(budgets.freeAmount)}}>
+        <div className='bg-amber-400 h-14 self-center' style={{ width: calculateWidth(budgets.freeAmount) }}>
           <div className='flex flex-col'>
             <span>Free Amount</span>
             <span>{displayMode === 'percentage' ? `${(budgets.freeAmount * 100).toFixed(1)}%` : `${Math.round(budgets.freeAmount * income)}`}</span>

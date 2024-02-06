@@ -103,7 +103,7 @@ function Chart({ editing, budgets, prevBudgets, budgetType, income, headline, de
                     </defs>
                     {budgetType === 'investment' && <Area dataKey='investment' stroke='#10b981' fill='url(#colorInvestment)' />}
                     {budgetType === 'savings' && <Area dataKey='savings' stroke='#06b6d4' fill='url(#colorSavings)' />}
-                    {editing && <Area dataKey='prev' stroke='#71717a' fill='url(#colorPrev)' />}
+                    {editing && budgets[budgetType] != prevBudgets[budgetType] && <Area dataKey='prev' stroke='#71717a' fill='url(#colorPrev)' />}
                     <XAxis dataKey='date' axisLine={false} tickLine={false} tickFormatter={str => {
                         const currentYear = new Date().getFullYear();
                         if (str === currentYear) {
